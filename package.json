@@ -7,7 +7,7 @@
   },
   "dependencies": {
     "express": "^4.18.2",
-    "cors": "^2.8.5"
-  },
-  "type": "module"
+    "cors": "^2.8.5",
+    "@google/generative-ai": "^0.13.0"
+  }
 }
