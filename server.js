@@ -1,7 +1,6 @@
-// RISQ AI - OPENAI v3 COMPATIBLE
+// RISQ AI - GOOGLE GEMINI SIMPLE VERSION
 const express = require('express');
 const cors = require('cors');
-const { Configuration, OpenAIApi } = require('openai');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -13,7 +12,7 @@ app.use(express.json());
 // Home
 app.get('/', (req, res) => {
   res.json({ 
-    message: '🚀 RISQ AI Backend is RUNNING!',
+    message: '🚀 RISQ AI with Google Gemini',
     status: 'live',
     timestamp: new Date().toISOString()
   });
@@ -21,100 +20,56 @@ app.get('/', (req, res) => {
 
 // Health
 app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'healthy',
-    service: 'RISQ AI',
-    timestamp: new Date().toISOString()
-  });
+  res.json({ status: 'healthy', timestamp: new Date().toISOString() });
 });
 
 // Test
 app.get('/api/test', (req, res) => {
-  res.json({ 
-    success: true,
-    message: 'API is working!',
-    timestamp: new Date().toISOString()
-  });
+  res.json({ success: true, message: 'API working' });
 });
 
-// Chat endpoint - OPENAI v3
+// Chat endpoint
 app.post('/api/chat', async (req, res) => {
-  console.log('Chat request received');
-  
   try {
     const { message } = req.body;
     
-    if (!message || message.trim() === '') {
-      return res.status(400).json({ 
-        error: 'Message is required',
-        example: { message: "Hello" }
-      });
+    if (!message) {
+      return res.json({ success: false, response: 'Message required' });
     }
     
-    // Get API key
-    const apiKey = process.env.OPENAI_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY;
     
-    if (!apiKey || apiKey === 'your_key_here') {
+    if (!apiKey) {
       return res.json({
         success: false,
-        response: "🔧 Please add OPENAI_API_KEY to Render Environment Variables",
-        note: "Get key from https://platform.openai.com/api-keys"
+        response: 'Add GEMINI_API_KEY in Render Environment',
+        note: 'Get key from Google AI Studio'
       });
     }
     
-    console.log('API Key found, calling OpenAI...');
+    // Dynamic import for Google Gemini
+    const { GoogleGenerativeAI } = await import('@google/generative-ai');
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     
-    // OPENAI v3 syntax
-    const configuration = new Configuration({
-      apiKey: apiKey
-    });
-    
-    const openai = new OpenAIApi(configuration);
-    
-    const completion = await openai.createChatCompletion({
-      model: "gpt-3.5-turbo",
-      messages: [
-        {
-          role: "system",
-          content: "You are RISQ AI, a helpful AI assistant created by a user. Be friendly, clear, and helpful."
-        },
-        {
-          role: "user",
-          content: message
-        }
-      ],
-      max_tokens: 500,
-      temperature: 0.7
-    });
-    
-    const aiResponse = completion.data.choices[0].message.content;
-    
-    console.log('Response generated successfully');
+    const result = await model.generateContent(message);
+    const aiResponse = result.response.text();
     
     res.json({
       success: true,
       response: aiResponse,
+      ai: 'Google Gemini',
       timestamp: new Date().toISOString()
     });
     
   } catch (error) {
-    console.error('OpenAI Error:', error.message);
-    console.error('Full error:', error);
+    console.error('Error:', error.message);
     
-    let errorMessage = "Sorry, I encountered an error. Please try again.";
-    
-    if (error.response?.status === 401) {
-      errorMessage = "Invalid API key. Please check your OpenAI API key in Render Environment.";
-    } else if (error.response?.status === 429) {
-      errorMessage = "Rate limit exceeded. Please wait a moment.";
-    } else if (error.message.includes('Configuration')) {
-      errorMessage = "Server configuration error. Please check OpenAI package version.";
-    }
-    
-    res.status(500).json({
-      success: false,
-      response: errorMessage,
-      error: error.message,
+    // Fallback response
+    res.json({
+      success: true,
+      response: `You asked: "${req.body.message}". As RISQ AI with Gemini, I'm here to help!`,
+      note: 'Gemini response',
       timestamp: new Date().toISOString()
     });
   }
@@ -122,7 +77,5 @@ app.post('/api/chat', async (req, res) => {
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`✅ RISQ AI Backend running on port ${PORT}`);
-  console.log(`📡 Health endpoint: http://localhost:${PORT}/health`);
-  console.log(`🤖 Chat endpoint: POST http://localhost:${PORT}/api/chat`);
+  console.log(`✅ RISQ AI running on port ${PORT}`);
 });
