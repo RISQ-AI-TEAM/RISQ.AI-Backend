@@ -53,7 +53,7 @@ app.post('/api/chat', async (req, res) => {
       // Dynamic require for Gemini
       const { GoogleGenerativeAI } = require('@google/generative-ai');
       const genAI = new GoogleGenerativeAI(apiKey);
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
       
       const result = await model.generateContent(message);
       const aiResponse = result.response.text();
@@ -114,3 +114,4 @@ app.post('/api/chat', async (req, res) => {
 app.listen(PORT, () => {
   console.log(`✅ RISQ AI with Gemini running on port ${PORT}`);
 });
+
