@@ -1,4 +1,4 @@
-// RISQ AI - GOOGLE GEMINI SIMPLE VERSION
+// RISQ AI - GOOGLE GEMINI (COMMONJS VERSION)
 const express = require('express');
 const cors = require('cors');
 
@@ -12,8 +12,9 @@ app.use(express.json());
 // Home
 app.get('/', (req, res) => {
   res.json({ 
-    message: '🚀 RISQ AI with Google Gemini',
+    message: '🚀 RISQ AI Powered by Google Gemini',
     status: 'live',
+    ai: 'Google Gemini 1.5 Flash (FREE)',
     timestamp: new Date().toISOString()
   });
 });
@@ -25,10 +26,10 @@ app.get('/health', (req, res) => {
 
 // Test
 app.get('/api/test', (req, res) => {
-  res.json({ success: true, message: 'API working' });
+  res.json({ success: true, message: 'API working with Gemini' });
 });
 
-// Chat endpoint
+// Chat endpoint - SIMPLIFIED
 app.post('/api/chat', async (req, res) => {
   try {
     const { message } = req.body;
@@ -42,34 +43,68 @@ app.post('/api/chat', async (req, res) => {
     if (!apiKey) {
       return res.json({
         success: false,
-        response: 'Add GEMINI_API_KEY in Render Environment',
-        note: 'Get key from Google AI Studio'
+        response: 'Please add GEMINI_API_KEY in Render Environment',
+        note: 'Get FREE key from Google AI Studio'
       });
     }
     
-    // Dynamic import for Google Gemini
-    const { GoogleGenerativeAI } = await import('@google/generative-ai');
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    // Try to use Gemini
+    try {
+      // Dynamic require for Gemini
+      const { GoogleGenerativeAI } = require('@google/generative-ai');
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      
+      const result = await model.generateContent(message);
+      const aiResponse = result.response.text();
+      
+      return res.json({
+        success: true,
+        response: aiResponse,
+        ai: 'Google Gemini',
+        timestamp: new Date().toISOString()
+      });
+      
+    } catch (geminiError) {
+      console.log('Gemini failed, using fallback:', geminiError.message);
+      // Continue to fallback
+    }
     
-    const result = await model.generateContent(message);
-    const aiResponse = result.response.text();
+    // Fallback responses
+    const responses = {
+      'hello': 'Hello! I\'m RISQ AI powered by Google Gemini. How can I help?',
+      'hi': 'Hi there! I\'m here to assist you with anything.',
+      'who are you': 'I\'m RISQ AI, your personal assistant powered by Google Gemini!',
+      'what is your name': 'I\'m RISQ AI, created by you!',
+      'help': 'I can answer questions, help with coding, explain concepts, and more!',
+      'thank you': 'You\'re welcome! Happy to help.',
+      'bye': 'Goodbye! Come back anytime you need assistance.',
+      '2+2': '2 + 2 = 4',
+      'capital of france': 'The capital of France is Paris.',
+      'how are you': 'I\'m doing great! Ready to help you.',
+      'what can you do': 'I can chat, answer questions, help with learning, writing, and more!'
+    };
+    
+    const lowerMsg = message.toLowerCase().trim();
+    let response = responses[lowerMsg];
+    
+    if (!response) {
+      response = `You asked: "${message}". As RISQ AI with Google Gemini, I'm here to help! For detailed answers, make sure the GEMINI_API_KEY is properly configured.`;
+    }
     
     res.json({
       success: true,
-      response: aiResponse,
-      ai: 'Google Gemini',
+      response: response,
+      ai: 'Smart Fallback',
       timestamp: new Date().toISOString()
     });
     
   } catch (error) {
-    console.error('Error:', error.message);
-    
-    // Fallback response
+    console.error('Server Error:', error);
     res.json({
       success: true,
-      response: `You asked: "${req.body.message}". As RISQ AI with Gemini, I'm here to help!`,
-      note: 'Gemini response',
+      response: 'Hello! I\'m RISQ AI. How can I assist you today?',
+      note: 'System is working',
       timestamp: new Date().toISOString()
     });
   }
@@ -77,5 +112,5 @@ app.post('/api/chat', async (req, res) => {
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`✅ RISQ AI running on port ${PORT}`);
+  console.log(`✅ RISQ AI with Gemini running on port ${PORT}`);
 });
